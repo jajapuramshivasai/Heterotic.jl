@@ -74,8 +74,6 @@ end
 # Test swap gate
 @testset "Swap Gate Tests" begin
     sv = statevector(2, 2)
-    println(sv)
     swap!(sv, 1, 2)
-    println(sv)
     @test isapprox(abs2.(sv), [0.0, 1.0, 0.0, 0.0])
 end

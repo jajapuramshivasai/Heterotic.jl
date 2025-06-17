@@ -1,6 +1,6 @@
 using Test
-include("../src/QSim/QSim.jl")
-using .QSim
+
+using Heterotic.QSim
 
 # Test statevector creation
 @testset "Statevector Tests" begin

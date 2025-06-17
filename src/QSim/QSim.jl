@@ -1,9 +1,8 @@
-module QSim_base
+module QSim
 
 using LinearAlgebra
 
-export statevector, u!, u2!, h!, x!, y!, z!, rx!, ry!, rz!, 
-       cnot!, crx!, cry!, crz!, swap!, mp, prstate, measure_x,measure_y,measure_z, density_matrix ,expectation
+export statevector,cnot!,measure_z,swap!, u!, u2!, h!, x!, y!, z!, rx!, ry!, rz!, crx!, cry!, crz!, mp, prstate, measure_x,measure_y, density_matrix 
 
 # Core Constants 
 const c1 = ComplexF64(1)
@@ -33,7 +32,7 @@ end
 
 function statevector(n::Int, m::Int)
     s = zeros(ComplexF64, 1 << n)
-    s[m+1] = c1
+    s[m+1] = c1 
     s
 end
 

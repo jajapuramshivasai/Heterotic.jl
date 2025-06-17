@@ -2,10 +2,14 @@ module Heterotic
 
 # Write your package code here.
 
-using LinearAlgebra
 
 export allo
 
 allo() = "Hello from Heterotic!"
+include("QSim/QSim.jl")    # loads src/QSim/QSim.jl
+
+using .QSim  
+export QSim 
+
 
 end

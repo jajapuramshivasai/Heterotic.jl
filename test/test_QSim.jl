@@ -245,6 +245,19 @@ using LinearAlgebra
             crx!(rho, 1, 2, π/4)
             @test tr(rho) ≈ 1.0
             @test ishermitian(rho)
+
+            # Test CRY on density matrices
+            rho = density_matrix(2, 2)
+            cry!(rho, 1, 2, π/4)
+            @test tr(rho) ≈ 1.0
+            @test ishermitian(rho)
+
+            # Test CRZ on density matrices
+            rho = density_matrix(2, 2)
+            crz!(rho, 1, 2, π/4)
+            @test tr(rho) ≈ 1.0
+            @test ishermitian(rho)
+
         end
     end
     
@@ -326,6 +339,8 @@ using LinearAlgebra
             @test I0[1,1] ≈ 1.0
         end
     end
+    
+
     
     @testset "Error Handling" begin
         @testset "Dimension Mismatch Errors" begin

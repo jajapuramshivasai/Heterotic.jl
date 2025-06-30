@@ -2,7 +2,7 @@ module QSim
 
 using LinearAlgebra
 
-export statevector,cnot!,measure_z,swap!, u2!, h!, x!, y!, z!, rx!, ry!, rz!, crx!, cry!, crz!, mp, prstate, measure_x,measure_y, density_matrix,nb,id,statevector_to_density_matrix 
+export statevector,cnot!,measure_z,swap!, u2!, h!, x!, y!, z!, rx!, ry!, rz!, crx!, cry!, crz!, mp, prstate, measure_x,measure_y, density_matrix,nb,id,statevector_to_density_matrix ,X,Y,Z,I2
 
 # Core Constants 
 const c1 = ComplexF64(1)
@@ -363,17 +363,6 @@ function measure_y(rho::Matrix{ComplexF64}, t::Int)
     return measure_z(rho_copy, t)
 end
 
-function expectation(x::Vector{ComplexF64}, observable::Function, t::Int)
-    x_conj = copy(x)'
-    e = x_conj * observable(x, t) 
-    return e
-end
-
-function expectation(rho::Matrix{ComplexF64}, observable::Function, t::Int)
-    r = nb(rho)
-    e = trace(rho * observable(id(r), t))
-    return e
-end
 
 function prstate(s::Vector{ComplexF64})
     n = nb(s)

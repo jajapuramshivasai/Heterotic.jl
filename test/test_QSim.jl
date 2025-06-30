@@ -330,10 +330,7 @@ using LinearAlgebra
     @testset "Error Handling" begin
         @testset "Dimension Mismatch Errors" begin
             s = statevector(2, 0)
-            
-            # Wrong matrix size for u!
-            wrong_matrix = rand(ComplexF64, 3, 3)
-            @test_throws ErrorException u!(s, wrong_matrix)
+        
             
             # Qubit index out of range
             @test_throws ErrorException h!(s, 3)

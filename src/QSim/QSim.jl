@@ -2,7 +2,7 @@ module QSim
 
 using LinearAlgebra
 
-export statevector,cnot!,measure_z,swap!, u!, u2!, h!, x!, y!, z!, rx!, ry!, rz!, crx!, cry!, crz!, mp, prstate, measure_x,measure_y, density_matrix,nb,id,statevector_to_density_matrix 
+export statevector,cnot!,measure_z,swap!, u2!, h!, x!, y!, z!, rx!, ry!, rz!, crx!, cry!, crz!, mp, prstate, measure_x,measure_y, density_matrix,nb,id,statevector_to_density_matrix 
 
 # Core Constants 
 const c1 = ComplexF64(1)
@@ -48,14 +48,6 @@ end
 nb(s::Vector{ComplexF64}) = round(Int, log2(length(s)))
 nb(rho::Matrix{ComplexF64}) = round(Int, log2(size(rho, 1)))
 
-# State vector operations
-function u!(s::Vector{ComplexF64}, U::Matrix{ComplexF64})
-    size(U, 2) == length(s) || error("Dimension mismatch")
-    temp = similar(s)
-    mul!(temp, U, s)  # Explicitly use mul! for BLAS optimization
-    copyto!(s, temp)
-    s
-end
 
 function u2!(s::Vector{ComplexF64}, t::Int, U::Matrix{ComplexF64})
     q = nb(s)
@@ -70,16 +62,7 @@ function u2!(s::Vector{ComplexF64}, t::Int, U::Matrix{ComplexF64})
     s
 end
 
-# Density matrix operations
-function u!(rho::Matrix{ComplexF64}, U::Matrix{ComplexF64})
-    size(U, 2) == size(rho, 1) || error("Dimension mismatch")
-    temp = similar(rho)
-    mul!(temp, U, rho)
-    rho_new = similar(rho)
-    mul!(rho_new, temp, U')
-    copyto!(rho, rho_new)
-    rho
-end
+
 
 function u2!(rho::Matrix{ComplexF64}, t::Int, U::Matrix{ComplexF64})
     q = round(Int, log2(size(rho,1)))

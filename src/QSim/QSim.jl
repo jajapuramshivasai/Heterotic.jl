@@ -2,7 +2,7 @@ module QSim
 
 using LinearAlgebra
 
-export statevector,cnot!,measure_z,swap!, u!, u2!, h!, x!, y!, z!, rx!, ry!, rz!, crx!, cry!, crz!, mp, prstate, measure_x,measure_y, density_matrix 
+export statevector,cnot!,measure_z,swap!, u!, u2!, h!, x!, y!, z!, rx!, ry!, rz!, crx!, cry!, crz!, mp, prstate, measure_x,measure_y, density_matrix,nb,id,statevector_to_density_matrix 
 
 # Core Constants 
 const c1 = ComplexF64(1)

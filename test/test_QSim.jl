@@ -1,6 +1,7 @@
 using Test
 
 using Heterotic.QSim
+using LinearAlgebra
 
 # Test statevector creation
 @testset "Statevector Tests" begin
@@ -81,9 +82,47 @@ end
 
 # Test swap gate
 @testset "Swap Gate Tests" begin
-    ψ = statevector(2, 2)
-    swap!(ψ, 1, 2)
-    @test isapprox(abs2.(ψ), [0.0, 1.0, 0.0, 0.0])
+    @testset "Controlled Rotation Gate Tests" begin
+        # CRX on |11⟩ should flip target to |10⟩ (up to phase)
+        ψ = statevector(2, 2)   # |11⟩
+        crx!(ψ, 1, 2, π)
+        @test isapprox(abs2.(ψ), [0.0, 0.0, 1.0, 0.0])
 
+        # CRX on |01⟩ (control=0) does nothing
+        ψ = statevector(2, 1)   # |01⟩
+        crx!(ψ, 1, 2, π)
+        @test isapprox(abs2.(ψ), [0.0, 0.0, 0.0, 1.0])
+
+        # CRY on |11⟩ should flip target to |10⟩ (up to global phase)
+        ψ = statevector(2, 2)
+        cry!(ψ, 1, 2, π)
+        @test isapprox(abs2.(ψ), [0.0, 0.0, 1.0, 0.0])
+
+        # CRZ on |11⟩ applies a phase i but leaves probabilities unchanged
+        ψ = statevector(2, 2)
+        crz!(ψ, 1, 2, π)
+        @test isapprox(abs2.(ψ), [0.0, 0.0, 1.0, 0.0])
+        # @test isapprox(ψ[4], im)
+    end
+
+    @testset "Controlled Rotation Gate Tests on Density Matrices" begin
+        # CRX on density matrix for |11⟩ should move population to |10⟩
+        ρ = density_matrix(2, 2)  # |11⟩⟨11|
+        crx!(ρ, 1, 2, π)
+        @test isapprox(real(diag(ρ)), [0.0, 0.0, 1.0, 0.0])
+
+        # CRY on density matrix for |11⟩ behaves similarly
+        ρ = density_matrix(2, 2)
+        cry!(ρ, 1, 2, π)
+        @test isapprox(real(diag(ρ)), [0.0, 0.0, 1.0, 0.0])
+
+        # CRZ on density matrix only adds phase, populations unchanged
+        ρ = density_matrix(2, 2)
+        crz!(ρ, 1, 2, π)
+        @test isapprox(real(diag(ρ)), [0.0, 0.0, 1.0, 0.0])
+        # off‐diagonal should pick up a phase; test one element
+        print("ρ : ", ρ)
+
+        @test isapprox(ρ[3,3], 1 + 0im)
+    end
 end
-

@@ -2,7 +2,7 @@ module Grovers
 using Heterotic.QSim
 using LinearAlgebra
 
-export grover ,oracle, diffusion
+export oracle, diffusion
 
 """
     statevector(n::Int, init::Int)
@@ -94,54 +94,4 @@ function diffusion(s::Vector{ComplexF64})
     return s
 end
 
-
-"""
-    grover(n::Int, winner::Int)
-
-Performs Grover's search algorithm for `n` qubits to find the `winner` state.
-
-# Arguments
-- `n::Int`: The number of qubits.
-- `winner::Int`: The integer representation of the state to find (from 0 to 2^n - 1).
-
-# Returns
-- `Vector{ComplexF64}`: The final state vector after the search.
-"""
-function grover(n::Int, winner::Int)
-    # 1. Initialization
-    s = statevector(n, 0) # Start in |0...0>
-
-    # Apply Hadamard to all qubits to create superposition
-    for i in 1:n
-        h!(s, i)
-    end
-
-    # 2. Iterations
-    # Optimal number of iterations
-    k = round(Int, (π / 4) * sqrt((1 << n)))
-    
-    println("Running Grover's algorithm for $n qubits to find state |$winner⟩.")
-    println("Optimal number of iterations: $k")
-
-    for i in 1:k
-        # Apply Oracle
-        oracle(s, winner)
-        
-        # Apply Diffusion operator
-        diffusion(s)
-    end
-
-    # 3. Measurement (implied, we return the final state)
-    println("\nFinal state probabilities:")
-    prstate(s)
-    
-    return s
 end
-
-end # module Grovers
-
-# Example Usage:
-# using .Grovers
-# n_qubits = 3
-# winning_state = 5 # We want to find the state |101>
-# final_state = Grovers.grover(n_qubits, winning_state)

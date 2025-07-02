@@ -2,96 +2,140 @@ module Grovers
 using Heterotic.QSim
 using LinearAlgebra
 
-export oracle, diffusion
+export oracle, diffusion, create_oracle_circuit, create_diffusion_circuit, create_grovers_circuit
+
 
 """
-    statevector(n::Int, init::Int)
-"""
+    create_oracle_circuit(circuit, marked_states)
 
+Create an oracle circuit that marks the specified states by flipping their phase.
+The marked_states should be provided as a list of integers representing the computational basis states.
 """
-    oracle(s::Vector{ComplexF64}, winner::Int)
-
-Applies the oracle to the state vector `s`.
-The oracle flips the phase of the `winner` state.
-"""
-function oracle(s::Vector{ComplexF64}, winner::Int)
-    n = nb(s)
-    if !(0 <= winner < 1 << n)
-        error("Winner state is out of bounds for the number of qubits.")
+function create_oracle_circuit(circuit::QuantumCircuit, marked_states::Vector{Int})
+    n_qubits = circuit.n_qubits
+    
+    for state in marked_states
+        # Convert state index to binary representation
+        binary = digits(state, base=2, pad=n_qubits)
+        
+        # Apply X gates to all qubits where the bit is 0
+        for q in 1:n_qubits
+            if binary[q] == 0
+                add_gate!(circuit, :x, targets=[q])
+            end
+        end
+        
+        # Apply multi-controlled Z gate
+        if n_qubits == 1
+            add_gate!(circuit, :z, targets=[1])
+        elseif n_qubits == 2
+            add_gate!(circuit, :cz, controls=[1], targets=[2])
+        else
+            # For n>2, apply X to all but last qubit, then use multi-controlled-X, then X again
+            for q in 1:(n_qubits-1)
+                add_gate!(circuit, :x, targets=[q])
+            end
+            
+            # Multi-controlled NOT on the last qubit
+            controls = collect(1:(n_qubits-1))
+            add_gate!(circuit, :cnot, controls=controls, targets=[n_qubits])
+            
+            # Z on the last qubit
+            add_gate!(circuit, :z, targets=[n_qubits])
+            
+            # Repeat multi-controlled NOT to restore state
+            add_gate!(circuit, :cnot, controls=controls, targets=[n_qubits])
+            
+            # Undo X gates
+            for q in 1:(n_qubits-1)
+                add_gate!(circuit, :x, targets=[q])
+            end
+        end
+        
+        # Undo X gates
+        for q in 1:n_qubits
+            if binary[q] == 0
+                add_gate!(circuit, :x, targets=[q])
+            end
+        end
     end
     
-    # The oracle U_w is a diagonal matrix with -1 at the winner index
-    # and 1 everywhere else. Applying it is equivalent to flipping the
-    # phase of the corresponding amplitude in the state vector.
-    s[winner + 1] *= -1
-    return s
+    return circuit
 end
 
 """
-    diffusion(s::Vector{ComplexF64})
+    create_diffusion_circuit(circuit)
 
-Applies the Grover diffusion operator (inversion about the mean) to the state `s`.
+Create a diffusion circuit for Grover's algorithm.
+This implements the diffusion operator 2|s⟩⟨s| - I.
 """
-function diffusion(s::Vector{ComplexF64})
-    n = nb(s)
-
+function create_diffusion_circuit(circuit::QuantumCircuit)
+    n_qubits = circuit.n_qubits
+    
     # Apply H to all qubits
-    for i in 1:n
-        h!(s, i)
+    for i in 1:n_qubits
+        add_gate!(circuit, :h, targets=[i])
     end
-
-    # Apply reflection about |0...0> state (U_s = 2|0><0| - I)
-    # This can be implemented as a multi-controlled Z gate with X-gates
-    # on all qubits before and after.
     
     # Apply X to all qubits
-    for i in 1:n
-        x!(s, i)
-    end
-
-    # Multi-controlled Z gate (on all qubits, targetting the last one)
-    # A multi-controlled Z gate flips the phase of the |1...1> state.
-    # We can implement this with a controlled-Z gate on the last qubit,
-    # controlled by all other qubits.
-    # For simplicity in this simulator, we can directly flip the phase of the |1...1> state
-    # which is the last element of the state vector after the X gates.
-    if n > 1
-        # A simple way to implement multi-controlled Z is to use a single
-        # controlled Z gate recursively, but for a statevector simulation,
-        # a direct phase flip is more efficient.
-        # Here we use a controlled Z from qubit n-1 to n, with controls on all others.
-        # For a full implementation, one would decompose the multi-controlled gate.
-        # A simpler approach that is equivalent to 2|s_uniform><s_uniform| - I
-        # is to reflect around the |0...0> state.
-        
-        # The operator is I - 2|0...0><0...0|.
-        # It flips the phase of every state except |0...0>.
-        # After the X-gates, the |0...0> state is now the |1...1> state.
-        # The operator becomes a reflection around |1...1>.
-        # Let's implement the reflection around |0...0> directly.
-        
-        # Store the amplitude of the |0...0> state
-        s0 = s[1]
-        # Flip the phase of all states
-        s .*= -1
-        # Add back 2 * s0 to the |0...0> state's amplitude
-        s[1] += 2 * s0
-    else # For a single qubit
-        z!(s, 1)
-    end
-
-
-    # Apply X to all qubits again
-    for i in 1:n
-        x!(s, i)
-    end
-
-    # Apply H to all qubits again
-    for i in 1:n
-        h!(s, i)
+    for i in 1:n_qubits
+        add_gate!(circuit, :x, targets=[i])
     end
     
-    return s
+    # Apply controlled-Z gate (phase flip on |11...1⟩ state)
+    if n_qubits == 1
+        add_gate!(circuit, :z, targets=[1])
+    elseif n_qubits == 2
+        add_gate!(circuit, :cz, controls=[1], targets=[2])
+    else
+        # For n>2, use a multi-controlled Z implementation
+        # First apply H to the last qubit
+        add_gate!(circuit, :h, targets=[n_qubits])
+        
+        # Apply multi-controlled-NOT with all but the last qubit as controls
+        controls = collect(1:(n_qubits-1))
+        add_gate!(circuit, :cnot, controls=controls, targets=[n_qubits])
+        
+        # Apply H to the last qubit again
+        add_gate!(circuit, :h, targets=[n_qubits])
+    end
+    
+    # Apply X to all qubits again
+    for i in 1:n_qubits
+        add_gate!(circuit, :x, targets=[i])
+    end
+    
+    # Apply H to all qubits again
+    for i in 1:n_qubits
+        add_gate!(circuit, :h, targets=[i])
+    end
+    
+    return circuit
+end
+
+"""
+    create_grovers_circuit(n_qubits, marked_states, iterations)
+
+Create a complete Grover's algorithm circuit for searching the marked states.
+"""
+function create_grovers_circuit(n_qubits::Int, marked_states::Vector{Int}, iterations::Int)
+    circuit = QuantumCircuit(n_qubits)
+    
+    # Initialize with Hadamard on all qubits
+    for i in 1:n_qubits
+        add_gate!(circuit, :h, targets=[i])
+    end
+    
+    # Apply Grover iteration the specified number of times
+    for _ in 1:iterations
+        # Oracle
+        create_oracle_circuit(circuit, marked_states)
+        
+        # Diffusion
+        create_diffusion_circuit(circuit)
+    end
+    
+    return circuit
 end
 
 end

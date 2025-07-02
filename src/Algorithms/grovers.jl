@@ -46,10 +46,7 @@ function create_oracle_circuit(circuit::QuantumCircuit, marked_states::Vector{In
             # Repeat multi-controlled NOT to restore state
             add_gate!(circuit, :cnot, controls=controls, targets=[n_qubits])
             
-            # Undo X gates
-            for q in 1:(n_qubits-1)
-                add_gate!(circuit, :x, targets=[q])
-            end
+            # Undo X gates (handled by the outer loop below)
         end
         
         # Undo X gates

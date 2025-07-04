@@ -7,9 +7,7 @@
 
 **Heterotic.jl** is a high-performance, extensible Julia package for simulating quantum circuits and modeling quantum information processing tasks. It supports both traditional state vector simulations and tensor network-based methods (e.g., Matrix Product States), and is designed to scale efficiently for distributed computing environments.
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/jajapuramshivasai/Heterotic.jl/main/docs/logo.png" alt="Heterotic Logo" width="200"/>
-</div>
+
 
 ---
 

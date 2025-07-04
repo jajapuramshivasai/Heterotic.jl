@@ -25,8 +25,19 @@
 
 ## 📦 Installation
 
-Heterotic.jl requires Julia 1.9 or later.
+1. Heterotic.jl requires Julia 1.9 or later.
 
+2. Clone this repository:
 ```julia
 using Pkg
 Pkg.add(url="https://github.com/jajapuramshivasai/Heterotic.jl")
+```
+
+3. Start Julia and instantiate the project:
+   ```julia
+   julia> ] activate .
+   julia> instantiate
+   ```
+
+
+
